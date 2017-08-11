@@ -45,7 +45,7 @@ class Tile(Widget):
     def __init__(self, board, posx, posy, init_color, **kwargs):
         super(Tile, self).__init__(**kwargs)
         self.board = board
-        self._color = rgb[init_color]
+        self.color = rgb[init_color]
         (self.posx, self.posy) = (posx, posy)
         self.adjacent = [(posx+1,posy), (posx,posy+1), (posx-1,posy), (posx,posy-1)]
         for tile in self.adjacent[:]:
@@ -58,9 +58,8 @@ class Tile(Widget):
     def xy(self):
         return (self.posx, self.posy)
 
-    @property
-    def color(self):
-       return tuple(self._color)
+    def get_color(self):
+       return tuple(self.color)
 
     def get_adj(self):
         temp = []
@@ -79,19 +78,19 @@ class Tile(Widget):
         self.y4 = self.y1+self.height+15
         self.points = [self.x1,self.y1, self.x2,self.y1, self.x2,self.y2, self.x1,self.y2]
 
-    def recolor(self, new_color, *args):
-        self.flipped = True
-        self.old_color = self.color
-        self.new_color = new_color
-        for tile in self.adjacent:
-            if (self.parent.tiles[tile].flipped is False and
-                (self.parent.tiles[tile].color == self.old_color or
-                 self.parent.tiles[tile].color == new_color)):
-                    self.parent.tiles[tile].recolor(new_color, *args)
-               # self.parent.tiles[tile].flip(self.parent.tiles[tile])
-
-        self.flipped = False
-        self.flip(self)
+    # def recolor(self, new_color, *args):
+    #     self.flipped = True
+    #     self.old_color = self.color
+    #     self.new_color = new_color
+    #     for tile in self.adjacent:
+    #         if (self.parent.tiles[tile].flipped is False and
+    #             (self.parent.tiles[tile].color == self.old_color or
+    #              self.parent.tiles[tile].color == new_color)):
+    #                 self.parent.tiles[tile].recolor(new_color, *args)
+    #            # self.parent.tiles[tile].flip(self.parent.tiles[tile])
+    #
+    #     self.flipped = False
+    #     self.flip(self)
 
     def flip(self, new_color):
         offset = 5
@@ -105,7 +104,6 @@ class Tile(Widget):
         anim += Animation(pos=(self.x, self.y), d=.1, points=(
                          self.x1, self.y1, self.x2, self.y1,
                          self.x2, self.y2, self.x1, self.y2))
-
         anim.start(self)
 
 
@@ -117,13 +115,13 @@ class Panel(BoxLayout):
         for color in rgb:
             but = PanelButton(bg_color=rgb[color], board=board)
             self.add_widget(but)
-##            but.on_release = partial(board.tiles[(0,0)].recolor, rgb[i])            
 
 class PanelButton(Button):
     def __init__(self, bg_color, board, **kwargs):
         super(PanelButton, self).__init__(**kwargs)
         self.background_color = bg_color
-        self.on_release = partial(board.tiles[(0,0)].recolor, bg_color)
+        # self.on_release = partial(board.tiles[(0,0)].recolor, bg_color)
+        self.on_release = partial(board.click, bg_color)
 
 class Board(GridLayout):
     def __init__(self, **kwargs):
@@ -134,36 +132,45 @@ class Board(GridLayout):
                 self.tiles[(x,y)] = Tile(self, x, y, random.choice(colors))
                 self.add_widget(self.tiles[(x, y)])
         self.pool = {self.tile(0, 0)}
-        self.border = set(self.linked_tiles(self.tile(0, 0)))
+        # self.border = set(self.linked_tiles(self.tile(0, 0)))
+        self.expand_pool()
+
+    def click(self, btn_color):
+        self.expand_pool(btn_color)
+        for tile in self.pool:
+            tile.flip(btn_color)
 
     def tile(self, x, y):
         return self.tiles[(x,y)]
 
-    def expand_pool(self, color):
-        """Adds all adjacent matching tiles to the pool, and updates the new border"""
-        flag = True
-        current = self.tile(0, 0).color
-        while flag:
-            flag = False
-            for tile in self.border:
-                if tile.color == current:
-                    self.pool.add(tile)
-                    self.border.update(tile.get_adj())
-                    self.border.remove(tile)
-                    flag = True
+    # def expand_pool_alt(self, color):
+    #     """Adds all adjacent matching tiles to the pool, and updates the new border"""
+    #     flag = True
+    #     current = self.tile(0, 0).color
+    #     while flag:
+    #         flag = False
+    #         for tile in self.border:
+    #             if tile.color == current:
+    #                 self.pool.add(tile)
+    #                 self.border.update(tile.get_adj())
+    #                 self.border.remove(tile)
+    #                 flag = True
 
-    def linked_tiles(self, initial_tile):
+    def expand_pool(self, color=None):
         """Returns list of contiguous tiles matching the initial tile
         side-effect: deletes adjacent pointers from Tile() objects"""
-        temp = [initial_tile]
+        temp = list(self.pool)
+        if not color:
+            color = temp[0].get_color()
         for root in temp:
             for adj in root.get_adj():
-                if adj.color == root.color:
+                if adj.get_color() == color:
                     temp.append(adj)
                     adj.remove_adj(root.xy)
                     root.remove_adj(adj.xy)
-        return temp
-
+                # else:
+                #     self.border.add(adj)
+        self.pool.update(temp)
 
     def change_color(self, new_color):
         self.tiles[(0,0)].recolor(new_color)
@@ -171,7 +178,8 @@ class Board(GridLayout):
     def search(self, x=0, y=0):
         pass
 
-class App(App):    
+
+class App(App):
     def build(self):
         parent = BoxLayout(orientation='vertical')
         board = Board(size_hint=(1,3))
