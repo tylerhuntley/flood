@@ -134,35 +134,13 @@ class Board(GridLayout):
                 self.tiles[(x,y)] = Tile(self, x, y, random.choice(colors))
                 self.add_widget(self.tiles[(x, y)])
         self.pool = {self.tile(0, 0)}
-        self.border = set(self.linked_tiles(self.tile(0, 0)))
+        self.border = {self.tile(0, 0).get_adj()}
 
     def tile(self, x, y):
         return self.tiles[(x,y)]
 
     def expand_pool(self, color):
-        """Adds all adjacent matching tiles to the pool, and updates the new border"""
-        flag = True
-        current = self.tile(0, 0).color
-        while flag:
-            flag = False
-            for tile in self.border:
-                if tile.color == current:
-                    self.pool.add(tile)
-                    self.border.update(tile.get_adj())
-                    self.border.remove(tile)
-                    flag = True
-
-    def linked_tiles(self, initial_tile):
-        """Returns list of contiguous tiles matching the initial tile
-        side-effect: deletes adjacent pointers from Tile() objects"""
-        temp = [initial_tile]
-        for root in temp:
-            for adj in root.get_adj():
-                if adj.color == root.color:
-                    temp.append(adj)
-                    adj.remove_adj(root.xy)
-                    root.remove_adj(adj.xy)
-        return temp
+        temp = []
 
 
     def change_color(self, new_color):
@@ -178,8 +156,24 @@ class App(App):
         parent.add_widget(board)
         parent.add_widget(Panel(board))
         return parent
+    
+##        buttons = BoxLayout(size_hint=(1,0.3))
+##        but1 = Button(text='Red')
+##        but1.bind(on_release= partial(board.tiles[(0,0)].recolor, 'red'))
+##        but2 = Button(text='Green')
+##        but2.bind(on_release= partial(board.tiles[(0,0)].recolor, 'green'))
+##        but3 = Button(text='Blue')
+##        but3.bind(on_release= partial(board.tiles[(0,0)].recolor, 'blue'))
+##        for but in (but1, but2, but3):
+##            buttons.add_widget(but)
+##        parent.add_widget(buttons)
+
+  
+        
         
 
 if __name__ == '__main__':
     app = App()
     app.run()
+
+
