@@ -96,7 +96,7 @@ class Tile(Widget):
         for tile in self.adjacent:
             if board.tiles[tile].color == self.color:
                 to_flip.append(board.tiles[tile])
-        
+
 
     def on_touch_down(self, touch):
         pass
@@ -119,17 +119,18 @@ class PanelButton(Button):
 
 class Board(GridLayout):
     def __init__(self, **kwargs):
-        super(Board, self).__init__(**kwargs)
-        self.padding = 50
-        self.spacing = 2
-        self.cols = 7
-        self.rooted, self.frontier = [], []
+        super(Board, self).__init__(padding=50, spacing=2, cols=grid_size,**kwargs)
         self.tiles = {}
         for x in range(grid_size):
             for y in range(grid_size):
                 self.tiles[(x,y)] = Tile(self, x, y, random.choice(colors))
                 self.tiles[(x,y)].pos = self.tiles[(x,y)].pos
-                self.add_widget(self.tiles[(x,y)])                
+                self.add_widget(self.tiles[(x,y)])
+        self.pool = []
+        self.border = []
+
+    def expand_pool(self):
+        pass
 
     def change_color(self, new_color):
         self.tiles[(0,0)].recolor(new_color)
