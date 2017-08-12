@@ -9,6 +9,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.properties import ListProperty
 from kivy.core.window import Window
 from kivy.animation import Animation
+from kivy.clock import Clock
 
 
 Builder.load_string('''
@@ -49,6 +50,7 @@ class Tile(Widget):
             if not (tile[0] in range(grid_size) and tile[1] in range(grid_size)):
                 self.adjacent.remove(tile)
         self.bind(size=self.align)
+
     def align(self, *args):
         self.x1, self.y1 = self.pos
         self.x2, self.y2 = self.x1+self.width, self.y1+self.height
@@ -133,7 +135,8 @@ class Board(GridLayout):
     def click(self, btn_color):
         self.expand_pool(btn_color)
         for tile in self.pool:
-            tile.flip(btn_color)
+            Clock.schedule_once(tile.flip(btn_color), tile.get_delay(tile.get_distance()))
+            # tile.flip(btn_color)
 
     def tile(self, x, y):
         return self.tiles[(x, y)]
