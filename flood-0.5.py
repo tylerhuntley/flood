@@ -32,7 +32,7 @@ Builder.load_string('''
 
 rgb = {'red': (1, 0, 0, 1), 'green': (0, 1, 0, 1), 'blue': (0, 0, 1, 1), 'purple': (1, 0, 1, 1)}
 colors = ('red', 'green', 'blue', 'purple')
-grid_size = 20
+grid_size = 9
 
 
 class Tile(Widget):
@@ -72,6 +72,18 @@ class Tile(Widget):
     def remove_adj(self, coords):
         if coords in self.adjacent:
             self.adjacent.remove(coords)
+
+    def get_distance(self, other):
+        (x1, y1) = self.xy
+        if other:
+            (x2, y2) = other.xy
+        else:
+            (x2, y2) = (0, 0)
+        return ((x1-x2)**2 + (y1-y2)**2)**0.5
+
+    def get_delay(self, dist):
+        total = 0.5 / grid_size
+        return total * dist
 
     def flip(self, new_color):
         offset = 5
