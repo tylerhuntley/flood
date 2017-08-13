@@ -33,7 +33,7 @@ Builder.load_string('''
 
 rgb = {'red': (1, 0, 0, 1), 'green': (0, 1, 0, 1), 'blue': (0, 0, 1, 1), 'purple': (1, 0, 1, 1)}
 colors = ('red', 'green', 'blue', 'purple')
-grid_size = 9
+grid_size = 20
 
 
 class Tile(Widget):
@@ -75,28 +75,29 @@ class Tile(Widget):
         if coords in self.adjacent:
             self.adjacent.remove(coords)
 
-    def get_distance(self, other):
+    def get_distance(self, other=None):
         (x1, y1) = self.xy
-        if other:
+        try:
             (x2, y2) = other.xy
-        else:
+        except:
             (x2, y2) = (0, 0)
         return ((x1-x2)**2 + (y1-y2)**2)**0.5
 
-    def get_delay(self, dist):
+    def get_delay(self):
         total = 0.5 / grid_size
+        dist = self.get_distance()
         return total * dist
 
-    def flip(self, new_color):
-        offset = 5
-        anim = Animation(pos=(self.x-offset, self.y+offset), d=.1, points=(
+    def flip(self, new_color, _):
+        offset, dur = 5, 0.05
+        anim = Animation(pos=(self.x-offset, self.y+offset), d=dur, points=(
                          self.x3, self.y3, self.x3, self.y1,
                          self.x3, self.y2, self.x3, self.y4))
         # Swap the corners, to maintain original positions after the flip
         anim += Animation(color=new_color, d=0, points=(
                          self.x3, self.y1, self.x3, self.y3,
                          self.x3, self.y4, self.x3, self.y2))
-        anim += Animation(pos=(self.x, self.y), d=.1, points=(
+        anim += Animation(pos=(self.x, self.y), d=dur, points=(
                          self.x1, self.y1, self.x2, self.y1,
                          self.x2, self.y2, self.x1, self.y2))
         anim.start(self)
@@ -135,7 +136,7 @@ class Board(GridLayout):
     def click(self, btn_color):
         self.expand_pool(btn_color)
         for tile in self.pool:
-            Clock.schedule_once(tile.flip(btn_color), tile.get_delay(tile.get_distance()))
+            Clock.schedule_once(partial(tile.flip, btn_color), tile.get_delay())
             # tile.flip(btn_color)
 
     def tile(self, x, y):
