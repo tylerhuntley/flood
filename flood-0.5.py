@@ -88,7 +88,7 @@ class Tile(Widget):
         dist = self.get_distance()
         return total * dist
 
-    def flip(self, new_color, _):
+    def flip(self, new_color):
         offset, dur = 5, 0.05
         anim = Animation(pos=(self.x-offset, self.y+offset), d=dur, points=(
                          self.x3, self.y3, self.x3, self.y1,
@@ -100,7 +100,7 @@ class Tile(Widget):
         anim += Animation(pos=(self.x, self.y), d=dur, points=(
                          self.x1, self.y1, self.x2, self.y1,
                          self.x2, self.y2, self.x1, self.y2))
-        anim.start(self)
+        Clock.schedule_once(lambda dt: anim.start(self), self.get_delay())
 
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
@@ -140,8 +140,7 @@ class Board(GridLayout):
     def click(self, btn_color):
         self.expand_pool(btn_color)
         for tile in self.pool:
-            Clock.schedule_once(partial(tile.flip, btn_color), tile.get_delay())
-            # tile.flip(btn_color)
+            tile.flip(btn_color)
 
     def tile(self, x, y):
         return self.tiles[(x, y)]
