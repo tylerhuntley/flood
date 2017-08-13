@@ -75,20 +75,20 @@ class Tile(Widget):
         if coords in self.adjacent:
             self.adjacent.remove(coords)
 
-    def get_distance(self, other=None):
+    def get_distance(self, origin):
         (x1, y1) = self.xy
         try:
-            (x2, y2) = other.xy
-        except:
+            (x2, y2) = origin.xy
+        except AttributeError:
             (x2, y2) = (0, 0)
         return ((x1-x2)**2 + (y1-y2)**2)**0.5
 
-    def get_delay(self):
+    def get_delay(self, origin):
         total = 0.5 / grid_size
-        dist = self.get_distance()
+        dist = self.get_distance(origin)
         return total * dist
 
-    def flip(self, new_color):
+    def flip(self, new_color, origin):
         offset, dur = 5, 0.05
         anim = Animation(pos=(self.x-offset, self.y+offset), d=dur, points=(
                          self.x3, self.y3, self.x3, self.y1,
@@ -100,11 +100,11 @@ class Tile(Widget):
         anim += Animation(pos=(self.x, self.y), d=dur, points=(
                          self.x1, self.y1, self.x2, self.y1,
                          self.x2, self.y2, self.x1, self.y2))
-        Clock.schedule_once(lambda dt: anim.start(self), self.get_delay())
+        Clock.schedule_once(lambda dt: anim.start(self), self.get_delay(origin))
 
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
-            self.board.click(self.get_color())
+            self.board.click(self.get_color(), self)
 
 
 class Panel(BoxLayout):
@@ -122,7 +122,7 @@ class PanelButton(Button):
         super(PanelButton, self).__init__(**kwargs)
         self.background_color = bg_color
         # self.on_release = partial(board.tiles[(0,0)].recolor, bg_color)
-        self.on_release = partial(board.click, bg_color)
+        self.on_release = partial(board.click, bg_color, None)
 
 
 class Board(GridLayout):
@@ -137,10 +137,10 @@ class Board(GridLayout):
         # self.border = set(self.linked_tiles(self.tile(0, 0)))
         self.expand_pool()
 
-    def click(self, btn_color):
+    def click(self, btn_color, origin):
         self.expand_pool(btn_color)
         for tile in self.pool:
-            tile.flip(btn_color)
+            tile.flip(btn_color, origin)
 
     def tile(self, x, y):
         return self.tiles[(x, y)]
