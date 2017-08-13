@@ -102,6 +102,10 @@ class Tile(Widget):
                          self.x2, self.y2, self.x1, self.y2))
         anim.start(self)
 
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            self.board.click(self.get_color())
+
 
 class Panel(BoxLayout):
     def __init__(self, board, **kwargs):
