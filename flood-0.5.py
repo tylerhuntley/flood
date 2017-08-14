@@ -33,13 +33,13 @@ Builder.load_string('''
 
 rgb = {'red': (1, 0, 0, 1), 'green': (0, 1, 0, 1), 'blue': (0, 0, 1, 1), 'purple': (1, 0, 1, 1)}
 colors = ('red', 'green', 'blue', 'purple')
-grid_size = 20
+grid_size = 7
 
 
 class Tile(Widget):
     color = ListProperty([0, 0, 0, 0])
     points = ListProperty([0, 0, 0, 0, 0, 0, 0, 0])
-    
+
     def __init__(self, board, posx, posy, init_color, **kwargs):
         super(Tile, self).__init__(**kwargs)
         self.board = board
@@ -89,17 +89,17 @@ class Tile(Widget):
         return total * dist
 
     def flip(self, new_color, origin):
-        offset, dur = 5, 0.05
-        anim = Animation(pos=(self.x-offset, self.y+offset), d=dur, points=(
-                         self.x3, self.y3, self.x3, self.y1,
-                         self.x3, self.y2, self.x3, self.y4))
+        dur = 0.05
+        anim = Animation(d=dur, points=(
+                        self.x3, self.y3, self.x3, self.y1,
+                        self.x3, self.y2, self.x3, self.y4))
         # Swap the corners, to maintain original positions after the flip
         anim += Animation(color=new_color, d=0, points=(
-                         self.x3, self.y1, self.x3, self.y3,
-                         self.x3, self.y4, self.x3, self.y2))
-        anim += Animation(pos=(self.x, self.y), d=dur, points=(
-                         self.x1, self.y1, self.x2, self.y1,
-                         self.x2, self.y2, self.x1, self.y2))
+                        self.x3, self.y1, self.x3, self.y3,
+                        self.x3, self.y4, self.x3, self.y2))
+        anim += Animation(d=dur, points=(
+                        self.x1, self.y1, self.x2, self.y1,
+                        self.x2, self.y2, self.x1, self.y2))
         Clock.schedule_once(lambda dt: anim.start(self), self.get_delay(origin))
 
     def on_touch_down(self, touch):
