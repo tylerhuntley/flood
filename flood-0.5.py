@@ -49,7 +49,7 @@ class Tile(Widget):
         for tile in self.adjacent[:]:
             if not (tile[0] in range(grid_size) and tile[1] in range(grid_size)):
                 self.adjacent.remove(tile)
-        self.bind(size=self.align)
+        self.bind(size=self.align, pos=self.align)
 
     def align(self, *args):
         self.x1, self.y1 = self.pos
@@ -90,14 +90,14 @@ class Tile(Widget):
 
     def flip(self, new_color, origin):
         dur = 0.05
-        anim = Animation(d=dur, points=(
+        anim = Animation(d=dur, pos=(self.x+10, self.y+10), points=(
                         self.x3, self.y3, self.x3, self.y1,
                         self.x3, self.y2, self.x3, self.y4))
         # Swap the corners, to maintain original positions after the flip
         anim += Animation(color=new_color, d=0, points=(
                         self.x3, self.y1, self.x3, self.y3,
                         self.x3, self.y4, self.x3, self.y2))
-        anim += Animation(d=dur, points=(
+        anim += Animation(d=dur, pos=(self.x, self.y), points=(
                         self.x1, self.y1, self.x2, self.y1,
                         self.x2, self.y2, self.x1, self.y2))
         Clock.schedule_once(lambda dt: anim.start(self), self.get_delay(origin))
